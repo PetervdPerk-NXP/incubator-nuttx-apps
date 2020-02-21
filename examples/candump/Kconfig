@@ -1,0 +1,14 @@
+#
+# For a description of the syntax of this configuration file,
+# see the file kconfig-language.txt in the NuttX tools repository.
+#
+
+config EXAMPLES_CANDUMP
+	tristate "Example port of CAN-UTILS CANDUMP tool"
+	default n
+	depends on NET_CAN
+	---help---
+		Enable the CAN packet socket example
+
+if EXAMPLES_CANDUMP
+endif
