@@ -137,9 +137,11 @@ int main(int argc, FAR char *argv[])
   int i;
   int txc;
   int rxc;
+  int ret;
   uint8_t *buf;
   const int buflen = 128;
-  struct can_frame frame;
+  const int canfd_on = 1;
+  struct canfd_frame frame;
 
   const char data[8] = {0xDE, 0xAD, 0xBE, 0xAF, 0x45, 0x54};
 
@@ -187,6 +189,11 @@ int main(int argc, FAR char *argv[])
 
   sd = psock_create();
 
+  /* try to switch the socket into CAN FD mode */
+  ret = setsockopt(sd, SOL_CAN_RAW, CAN_RAW_FD_FRAMES, &canfd_on, sizeof(canfd_on));
+
+  printf("setsockopt CAN_RAW_FD_FRAMES %i\r\n", ret);
+
   if (do_tx)
     {
       if (verbose)
@@ -195,15 +202,15 @@ int main(int argc, FAR char *argv[])
         }
 
       frame.can_id = 0x123;
-      frame.can_dlc = 8;
-      memcpy(frame.data, data, 8);
+      frame.len = 64;
+      memcpy(frame.data, data, 12);
 
       for (i = 0; i < do_txtimes; i++)
         {
           #define PIN_PORTD               (3 << 8)
           #define PIN31                   (31 << 0)
           s32k1xx_gpiowrite(PIN_PORTD | PIN31, 1);
-          if ((txc = write(sd, &frame, sizeof(struct can_frame))) < 0)
+          if ((txc = write(sd, &frame, sizeof(struct canfd_frame))) < 0)
             {
               perror("ERROR: write failed");
               free(buf);

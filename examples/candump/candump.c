@@ -655,7 +655,7 @@ int main(int argc, char **argv)
                 #define PIN_PORTD               (3 << 8)
                 #define PIN31                   (31 << 0)
                 s32k1xx_gpiowrite(PIN_PORTD | PIN31, 0);
-                nbytes = 16;
+                //nbytes = 16;
 				idx = idx2dindex(addr.can_ifindex, s[i]);
 
 				if (nbytes < 0) {
