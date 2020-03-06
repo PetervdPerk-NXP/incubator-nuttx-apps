@@ -1,0 +1,3 @@
+[submodule "examples/uavcan/libuavcan"]
+	path = examples/uavcan/libuavcan
+	url = https://github.com/PetervdPerk-NXP/libuavcan

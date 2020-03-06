@@ -1,0 +1,14 @@
+#
+# For a description of the syntax of this configuration file,
+# see the file kconfig-language.txt in the NuttX tools repository.
+#
+
+config EXAMPLES_LIBUAVCAN_EXAMPLE
+	tristate "Example port of uavcan"
+	default n
+	depends on NET_CAN
+	---help---
+		Port of libuavcan on top of NuttX SocketCAN
+
+if EXAMPLES_LIBUAVCAN_EXAMPLE
+endif
