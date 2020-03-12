@@ -120,6 +120,7 @@ static void canpkt_usage(void)
   printf(" -r     receive\n");
   printf(" -t     transmit\n");
   printf(" -v     verbose\n");
+  printf(" -f     test filters\n");
   printf("\n");
 }
 
@@ -147,6 +148,7 @@ int main(int argc, FAR char *argv[])
 
   int opt;
   int verbose = 0;
+  int filter = 0;
   int do_rx = 0;
   int do_rxtimes = 99999999;
   int do_tx = 0;
@@ -160,7 +162,7 @@ int main(int argc, FAR char *argv[])
 
   /* Parse arguments */
 
-  while ((opt = getopt(argc, argv, "artv")) != -1)
+  while ((opt = getopt(argc, argv, "artvf")) != -1)
     {
       switch(opt)
         {
@@ -179,6 +181,10 @@ int main(int argc, FAR char *argv[])
 
           case 'v':
             verbose = 1;
+            break;
+
+          case 'f':
+            filter = 1;
             break;
 
           default:
@@ -202,7 +208,7 @@ int main(int argc, FAR char *argv[])
         }
 
       frame.can_id = 0x123;
-      frame.len = 64;
+      frame.len = 8;
       memcpy(frame.data, data, 12);
 
       for (i = 0; i < do_txtimes; i++)
@@ -210,7 +216,7 @@ int main(int argc, FAR char *argv[])
           #define PIN_PORTD               (3 << 8)
           #define PIN31                   (31 << 0)
           s32k1xx_gpiowrite(PIN_PORTD | PIN31, 1);
-          if ((txc = write(sd, &frame, sizeof(struct canfd_frame))) < 0)
+          if ((txc = write(sd, &frame, sizeof(struct can_frame))) < 0)
             {
               perror("ERROR: write failed");
               free(buf);
@@ -225,7 +231,7 @@ int main(int argc, FAR char *argv[])
                   print_buf(frame.data, txc);
                 }
             }
-          usleep(100);
+          usleep(1000);
         }
 
       free(buf);
@@ -236,6 +242,17 @@ int main(int argc, FAR char *argv[])
       if (verbose)
         {
           printf("Testing read() (%d times)\n", do_rxtimes);
+        }
+
+      if (filter)
+        {
+    	  struct can_filter rfilter[1];
+
+    	  rfilter[0].can_id   = 0x0D6 | CAN_INV_FILTER;
+    	  rfilter[0].can_mask = CAN_SFF_MASK;
+    	  ret = setsockopt(sd, SOL_CAN_RAW, CAN_RAW_FILTER, &rfilter, sizeof(rfilter));
+
+    	  printf("Enabled testing filter ret=%i\r\n", ret);
         }
 
       for (i = 0; i < do_rxtimes;  i++)
