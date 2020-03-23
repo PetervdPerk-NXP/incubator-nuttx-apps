@@ -166,8 +166,6 @@ void sigterm(int signo)
 	running = 0;
 }
 
-
-/* FIXME this functions uses ioctl that NuttX doesn't support yet */
 int idx2dindex(int ifidx, int socket) {
 
 	int i;
@@ -181,13 +179,13 @@ int idx2dindex(int ifidx, int socket) {
 	/* create new interface index cache entry */
 
 	/* remove index cache zombies first */
-	/*for (i=0; i < MAXIFNAMES; i++) {
+	for (i=0; i < MAXIFNAMES; i++) {
 		if (dindex[i]) {
 			ifr.ifr_ifindex = dindex[i];
 			if (ioctl(socket, SIOCGIFNAME, &ifr) < 0)
 				dindex[i] = 0;
 		}
-	}*/
+	}
 
 	for (i=0; i < MAXIFNAMES; i++)
 		if (!dindex[i]) /* free entry */
@@ -201,11 +199,9 @@ int idx2dindex(int ifidx, int socket) {
 
 	dindex[i] = ifidx;
 
-	/*ifr.ifr_ifindex = ifidx;
+	ifr.ifr_ifindex = ifidx;
 	if (ioctl(socket, SIOCGIFNAME, &ifr) < 0)
-		perror("SIOCGIFNAME");*/
-    
-    strcpy(ifr.ifr_name, "can0");
+		perror("SIOCGIFNAME");
 
 	if (max_devname_len < strlen(ifr.ifr_name))
 		max_devname_len = strlen(ifr.ifr_name);
@@ -424,19 +420,13 @@ int main(int argc, char **argv)
 #endif
 
 		if (strcmp(ANYDEV, ifr.ifr_name)) {
-			/*if (ioctl(s[i], SIOCGIFINDEX, &ifr) < 0) {
+			if (ioctl(s[i], SIOCGIFINDEX, &ifr) < 0) {
 				perror("SIOCGIFINDEX");
 				exit(1);
 			}
-			addr.can_ifindex = ifr.ifr_ifindex;*/
-            //FIXME add compatability functions
+			addr.can_ifindex = ifr.ifr_ifindex;
 		} else
 			addr.can_ifindex = 0; /* any can interface */
-			
-#ifdef DEBUG
-        addr.can_ifindex = 0; /* any can interface */
-		printf("using interface index '%i'.\n", addr.can_ifindex);
-#endif
 
 		if (nptr) {
 
@@ -516,9 +506,8 @@ int main(int argc, char **argv)
 			socklen_t curr_rcvbuf_size_len = sizeof(curr_rcvbuf_size);
 
 			/* try SO_RCVBUFFORCE first, if we run with CAP_NET_ADMIN */
-			/*if (setsockopt(s[i], SOL_SOCKET, SO_RCVBUFFORCE,
-				       &rcvbuf_size, sizeof(rcvbuf_size)) < 0) {*/
-            if(1) {
+			if (setsockopt(s[i], SOL_SOCKET, SO_RCVBUFFORCE,
+				       &rcvbuf_size, sizeof(rcvbuf_size)) < 0) {
 #ifdef DEBUG
 				printf("SO_RCVBUFFORCE failed so try SO_RCVBUF ...\n");
 #endif
@@ -620,8 +609,6 @@ int main(int argc, char **argv)
 	msg.msg_iov = &iov;
 	msg.msg_iovlen = 1;
 	msg.msg_control = &ctrlmsg;
-    
-    printf("Running\r\n");
 
 	while (running) {
 
@@ -634,7 +621,6 @@ int main(int argc, char **argv)
 
 		if ((ret = select(s[currmax-1]+1, &rdfs, NULL, NULL, timeout_current)) <= 0) {
 			//perror("select");
-			printf("Select error %i\r\n", ret);
 			running = 0;
 			continue;
 		}

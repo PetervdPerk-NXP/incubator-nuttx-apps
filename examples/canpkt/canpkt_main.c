@@ -70,7 +70,7 @@ static int psock_create(void)
   /* Prepare sockaddr struct */
 
   addr.can_family = AF_CAN;
-  addr.can_ifindex = 0;
+  addr.can_ifindex = 1;
   if (bind(sd, (const struct sockaddr *)&addr, addrlen) < 0)
     {
       perror("ERROR: binding socket failed");
