@@ -1,35 +1,20 @@
 /****************************************************************************
  * apps/nshlib/nsh.h
  *
- *   Copyright (C) 2007-2018 Gregory Nutt. All rights reserved.
- *   Author: Gregory Nutt <gnutt@nuttx.org>
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.  The
+ * ASF licenses this file to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the
+ * License.  You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- * 3. Neither the name NuttX nor the names of its contributors may be
- *    used to endorse or promote products derived from this software
- *    without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ * License for the specific language governing permissions and limitations
+ * under the License.
  *
  ****************************************************************************/
 
@@ -59,7 +44,9 @@
 /****************************************************************************
  * Pre-processor Definitions
  ****************************************************************************/
+
 /* Configuration ************************************************************/
+
 /* The background commands require pthread support */
 
 #ifdef CONFIG_DISABLE_PTHREAD
@@ -81,8 +68,7 @@
  */
 
 #undef NSH_HAVE_WRITABLE_MOUNTPOINT
-#if !defined(CONFIG_DISABLE_MOUNTPOINT) && defined(CONFIG_FS_WRITABLE) && \
-    CONFIG_NFILE_STREAMS > 0
+#if !defined(CONFIG_DISABLE_MOUNTPOINT) && CONFIG_NFILE_STREAMS > 0
 #  define NSH_HAVE_WRITABLE_MOUNTPOINT 1
 #endif
 
@@ -154,8 +140,8 @@
 #  error "No NSH front end defined"
 #endif
 
-/* If a USB device is selected for the NSH console then we need to handle some
- * special start-up conditions.
+/* If a USB device is selected for the NSH console then we need to handle
+ * some special start-up conditions.
  */
 
 #undef HAVE_USB_CONSOLE
@@ -445,8 +431,8 @@
 #endif
 
 /* strerror() produces much nicer output but is, however, quite large and
- * will only be used if CONFIG_NSH_STRERROR is defined.  Note that the strerror
- * interface must also have been enabled with CONFIG_LIBC_STRERROR.
+ * will only be used if CONFIG_NSH_STRERROR is defined.  Note that the
+ * strerror interface must also have been enabled with CONFIG_LIBC_STRERROR.
  */
 
 #ifndef CONFIG_LIBC_STRERROR
@@ -474,7 +460,7 @@
 #endif
 
 /* The maximum number of nested if-then[-else]-fi sequences that
- * are permissable.
+ * are permissible.
  */
 
 #ifndef CONFIG_NSH_NESTDEPTH
@@ -839,7 +825,8 @@ int nsh_usbconsole(void);
 #endif
 
 #if CONFIG_NFILE_STREAMS > 0 && !defined(CONFIG_NSH_DISABLESCRIPT)
-int nsh_script(FAR struct nsh_vtbl_s *vtbl, const char *cmd, const char *path);
+int nsh_script(FAR struct nsh_vtbl_s *vtbl, FAR const char *cmd,
+               FAR const char *path);
 #ifdef CONFIG_NSH_ROMFSETC
 int nsh_initscript(FAR struct nsh_vtbl_s *vtbl);
 #ifdef CONFIG_NSH_ROMFSRC
@@ -1048,24 +1035,20 @@ int cmd_irqinfo(FAR struct nsh_vtbl_s *vtbl, int argc, char **argv);
       !defined(CONFIG_NSH_DISABLE_MKFIFO)
   int cmd_mkfifo(FAR struct nsh_vtbl_s *vtbl, int argc, char **argv);
 #  endif
-#  ifdef CONFIG_FS_READABLE
-#    ifdef NSH_HAVE_CATFILE
-#      ifndef CONFIG_NSH_DISABLE_DF
+#  ifdef NSH_HAVE_CATFILE
+#    ifndef CONFIG_NSH_DISABLE_DF
   int cmd_df(FAR struct nsh_vtbl_s *vtbl, int argc, char **argv);
-#      endif
-#      ifndef CONFIG_NSH_DISABLE_MOUNT
+#    endif
+#    ifndef CONFIG_NSH_DISABLE_MOUNT
   int cmd_mount(FAR struct nsh_vtbl_s *vtbl, int argc, char **argv);
-#      endif
 #    endif
-#    ifndef CONFIG_NSH_DISABLE_UMOUNT
+#  endif
+#  ifndef CONFIG_NSH_DISABLE_UMOUNT
   int cmd_umount(FAR struct nsh_vtbl_s *vtbl, int argc, char **argv);
-#    endif
-#    ifdef CONFIG_FS_WRITABLE
-#      ifndef CONFIG_NSH_DISABLE_MKRD
+#  endif
+#  ifndef CONFIG_NSH_DISABLE_MKRD
   int cmd_mkrd(FAR struct nsh_vtbl_s *vtbl, int argc, char **argv);
-#      endif
-#    endif /* CONFIG_FS_WRITABLE */
-#  endif /* CONFIG_FS_READABLE */
+#  endif
 #  ifdef CONFIG_FSUTILS_MKFATFS
 #    ifndef CONFIG_NSH_DISABLE_MKFATFS
   int cmd_mkfatfs(FAR struct nsh_vtbl_s *vtbl, int argc, char **argv);
@@ -1079,8 +1062,8 @@ int cmd_irqinfo(FAR struct nsh_vtbl_s *vtbl, int argc, char **argv);
 #  ifndef CONFIG_NSH_DISABLE_TRUNCATE
   int cmd_truncate(FAR struct nsh_vtbl_s *vtbl, int argc, char **argv);
 #  endif
-#  if defined(CONFIG_NSH_LOGIN_PASSWD) && defined(CONFIG_FS_WRITABLE) && \
-      !defined(CONFIG_FSUTILS_PASSWD_READONLY)
+#  if defined(CONFIG_NSH_LOGIN_PASSWD) && \
+     !defined(CONFIG_FSUTILS_PASSWD_READONLY)
 #    ifndef CONFIG_NSH_DISABLE_USERADD
   int cmd_useradd(FAR struct nsh_vtbl_s *vtbl, int argc, char **argv);
 #    endif
@@ -1128,8 +1111,7 @@ int cmd_irqinfo(FAR struct nsh_vtbl_s *vtbl, int argc, char **argv);
   int cmd_ifup(FAR struct nsh_vtbl_s *vtbl, int argc, char **argv);
   int cmd_ifdown(FAR struct nsh_vtbl_s *vtbl, int argc, char **argv);
 #  endif
-#  if !defined(CONFIG_DISABLE_MOUNTPOINT) && defined(CONFIG_FS_READABLE) && \
-      defined(CONFIG_NFS)
+#  if !defined(CONFIG_DISABLE_MOUNTPOINT) && defined(CONFIG_NFS)
 #    ifndef CONFIG_NSH_DISABLE_NFSMOUNT
   int cmd_nfsmount(FAR struct nsh_vtbl_s *vtbl, int argc, char **argv);
 #    endif
@@ -1172,7 +1154,7 @@ int cmd_pmconfig(FAR struct nsh_vtbl_s *vtbl, int argc, char **argv);
 #endif
 
 #if defined(CONFIG_RPTUN) && !defined(CONFIG_NSH_DISABLE_RPTUN)
-   int cmd_rptun(FAR struct nsh_vtbl_s *vtbl, int argc, char **argv);
+  int cmd_rptun(FAR struct nsh_vtbl_s *vtbl, int argc, char **argv);
 #endif
 
 #if (defined(CONFIG_BOARDCTL_POWEROFF) || defined(CONFIG_BOARDCTL_RESET)) && \
@@ -1238,7 +1220,7 @@ int cmd_pmconfig(FAR struct nsh_vtbl_s *vtbl, int argc, char **argv);
  *   name    - A point to the name containing the name to be matched.
  *   matches - A table is size CONFIG_READLINE_MAX_EXTCMDS that can
  *             be used to remember matching name indices.
- *   namelen - The lenght of the name to match
+ *   namelen - The length of the name to match
  *
  * Returned Values:
  *   The number commands that match to the first namelen characters.
@@ -1300,7 +1282,7 @@ int nsh_catfile(FAR struct nsh_vtbl_s *vtbl, FAR const char *cmd,
  *   be a string and is guaranteed to be NUL-termined.  An error occurs if
  *   the file content (+terminator)  will not fit into the provided 'buffer'.
  *
- * Input Paramters:
+ * Input Parameters:
  *   vtbl     - The console vtable
  *   cmd      - NSH command name to use in error reporting
  *   filepath - The full path to the file to be read
@@ -1349,7 +1331,7 @@ int nsh_foreach_direntry(FAR struct nsh_vtbl_s *vtbl, FAR const char *cmd,
  * Description:
  *   Skip any trailing '/' characters (unless it is also the leading '/')
  *
- * Input Parmeters:
+ * Input Parameters:
  *   dirpath - The directory path to be trimmed.  May be modified!
  *
  * Returned value:
@@ -1367,8 +1349,8 @@ void nsh_trimdir(FAR char *dirpath);
  * Description:
  *   Trim any leading or trailing spaces from a string.
  *
- * Input Parmeters:
- *   str - The sring to be trimmed.  May be modified!
+ * Input Parameters:
+ *   str - The string to be trimmed.  May be modified!
  *
  * Returned value:
  *   The new string pointer.

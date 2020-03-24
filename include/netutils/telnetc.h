@@ -235,8 +235,8 @@ enum telnet_event_type_e
   TELNET_EV_TTYPE,                        /* TTYPE command has been received */
   TELNET_EV_ENVIRON,                      /* ENVIRON command has been received */
   TELNET_EV_MSSP,                         /* MSSP command has been received */
-  TELNET_EV_WARNING,                      /* Recoverable error has occured */
-  TELNET_EV_ERROR                         /* Non-recoverable error has occured */
+  TELNET_EV_WARNING,                      /* Recoverable error has occurred */
+  TELNET_EV_ERROR                         /* Non-recoverable error has occurred */
 };
 
 /* Environ/MSSP command information */
@@ -280,10 +280,10 @@ union telnet_event_u
   struct
   {
     enum telnet_event_type_e _type;       /* Alias for type */
-    const char *file;                     /* File the error occured in */
-    const char *func;                     /* Function the error occured in */
+    const char *file;                     /* File the error occurred in */
+    const char *func;                     /* Function the error occurred in */
     const char *msg;                      /* Error message string */
-    int line;                             /* Line of file error occured on */
+    int line;                             /* Line of file error occurred on */
     enum telnet_error_e errcode;          /* Error code */
   } error;
 
@@ -732,7 +732,7 @@ void telnet_ttype_send(struct telnet_s * telnet);
  *
  *   The server may continue sending TERMINAL-TYPE IS until it receives a
  *   terminal type is understands.  To indicate to the server that it has
- *   reached the end of the available optoins, the client must send the last
+ *   reached the end of the available options, the client must send the last
  *   terminal type a second time.  When the server receives the same terminal
  *   type twice in a row, it knows it has seen all available terminal types.
  *

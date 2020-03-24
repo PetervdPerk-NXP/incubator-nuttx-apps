@@ -90,9 +90,15 @@
  */
 
 #ifdef CONFIG_NET_UDP
-# define SOCK_WAPI SOCK_DGRAM
+#  define SOCK_WAPI SOCK_DGRAM
 #else
-# define SOCK_WAPI SOCK_STREAM
+#  define SOCK_WAPI SOCK_STREAM
+#endif
+
+#ifndef CONFIG_WIRELESS_WAPI_INITCONF
+#  define wapi_load_config(ifname, confname, conf) NULL
+#  define wapi_unload_config(load)
+#  define wapi_save_config(ifname, confname, conf) 0
 #endif
 
 /****************************************************************************
@@ -205,7 +211,7 @@ struct wapi_route_info_s
 };
 
 /* A generic linked list container. For functions taking  struct wapi_list_s
- * type of argument, caller is resposible for releasing allocated memory.
+ * type of argument, caller is responsible for releasing allocated memory.
  */
 
 struct wapi_list_s
@@ -255,8 +261,8 @@ struct wpa_wconfig_s
   uint8_t ssidlen;               /* Length of the SSID */
   uint8_t phraselen;             /* Length of the passphrase */
   FAR const char *ifname;        /* E.g., "wlan0" */
-  FAR const uint8_t *ssid;       /* E.g., "myApSSID" */
-  FAR const uint8_t *passphrase; /* E.g., "mySSIDpassphrase" */
+  FAR const char *ssid;          /* E.g., "myApSSID" */
+  FAR const char *passphrase;    /* E.g., "mySSIDpassphrase" */
 };
 
 /****************************************************************************
@@ -346,7 +352,7 @@ int wapi_get_ip(int sock, FAR const char *ifname, struct in_addr *addr);
  * Name: wapi_set_ip
  *
  * Description:
- *   Sets IP adress of the given network interface.
+ *   Sets IP address of the given network interface.
  *
  ****************************************************************************/
 
@@ -664,6 +670,53 @@ int wapi_scan_stat(int sock, FAR const char *ifname);
 int wapi_scan_coll(int sock, FAR const char *ifname,
                    FAR struct wapi_list_s *aps);
 
+#ifdef CONFIG_WIRELESS_WAPI_INITCONF
+/****************************************************************************
+ * Name: wapi_load_config
+ *
+ * Description:
+ *
+ * Input Parameters:
+ *
+ * Returned Value:
+ *   Return a pointer to the hold the config resource, NULL On error.
+ *
+ ****************************************************************************/
+
+FAR void *wapi_load_config(FAR const char *ifname,
+                           FAR const char *confname,
+                           FAR struct wpa_wconfig_s *conf);
+
+/****************************************************************************
+ * Name: wapi_unload_config
+ *
+ * Description:
+ *
+ * Input Parameters:
+ *  load - Config resource handler, allocate by wapi_load_config()
+ *
+ * Returned Value:
+ *
+ ****************************************************************************/
+
+void wapi_unload_config(FAR void *load);
+
+/****************************************************************************
+ * Name: wapi_save_config
+ *
+ * Description:
+ *
+ * Input Parameters:
+ *
+ * Returned Value:
+ *
+ ****************************************************************************/
+
+int wapi_save_config(FAR const char *ifname,
+                     FAR const char *confname,
+                     FAR const struct wpa_wconfig_s *conf);
+#endif
+
 /****************************************************************************
  * Name: wpa_driver_wext_set_key_ext
  *
@@ -678,7 +731,7 @@ int wapi_scan_coll(int sock, FAR const char *ifname,
  ****************************************************************************/
 
 int wpa_driver_wext_set_key_ext(int sockfd, FAR const char *ifname,
-                                enum wpa_alg_e alg, FAR const uint8_t *key,
+                                enum wpa_alg_e alg, FAR const char *key,
                                 size_t key_len);
 
 /****************************************************************************

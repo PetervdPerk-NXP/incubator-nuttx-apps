@@ -1135,7 +1135,7 @@ static int zmr_parsefilename(FAR struct zmr_state_s *pzmr,
 
   DEBUGASSERT(pzmr && !pzmr->filename);
 
-  /* Don't allow absolute pathes */
+  /* Don't allow absolute paths */
 
   if (*namptr == '/')
     {
@@ -1699,7 +1699,7 @@ int zmr_release(ZMRHANDLE handle)
 
   zm_timerrelease(&pzmr->cmn);
 
-  /* Clean up any resouces that may be held from the last file transfer */
+  /* Clean up any resources that may be held from the last file transfer */
 
   zmr_filecleanup(pzmr);
 

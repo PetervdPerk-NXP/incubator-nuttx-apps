@@ -17,7 +17,7 @@ than the MAC character driver. IEEE 802.15.4 MAC character drivers show up in
 NuttX as /dev/ieeeN by default.
 
 When you invoke the first call to i8sak with a specified interface name, it creates
-an i8sak instance and launches a deamon to handle processing work. The instance
+an i8sak instance and launches a daemon to handle processing work. The instance
 is considered sticky, so it is possible to run `i8 /dev/ieee0` or 'i8 wpan0' at
 the beginning of a session and then can exclude the interface name from all
 future calls. The number of i8sak instances supported is controllable through
@@ -73,7 +73,7 @@ i8 /dev/ieee0 assoc
 
 This command attempts to associate with the node at the configured endpoint address.
 If everything is setup correctly, device A should have log information saying
-that a device tried to associate and that it accepted the assocation.  On device
+that a device tried to associate and that it accepted the association.  On device
 B, the console should show that the association request was successful. With all
 default settings, device B should have been allocated a short address of 0x000B.
 

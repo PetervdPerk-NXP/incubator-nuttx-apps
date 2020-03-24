@@ -159,7 +159,8 @@ static int enable_crlf_conversion(int fd)
 #endif
 }
 
-static int set_baudrate(int fd, int rate, enum parity_mode parity, int rtscts)
+static int set_baudrate(int fd, int rate, enum parity_mode parity,
+                        int rtscts)
 {
 #ifdef CONFIG_SERIAL_TERMIOS
   int rc = 0;
@@ -225,6 +226,7 @@ static void print_help(void)
          " -o: Set odd parity\n"
          " -s: Use given speed (default %d)\n"
          " -r: Disable RTS/CTS flow control (default: on)\n"
+         " -f: Enable endless mode without escape sequence (default: off)\n"
          " -?: This help\n",
          CONFIG_SYSTEM_CUTERM_DEFAULT_DEVICE,
          CONFIG_SYSTEM_CUTERM_DEFAULT_BAUD);
@@ -274,6 +276,7 @@ int main(int argc, FAR char *argv[])
   int baudrate = CONFIG_SYSTEM_CUTERM_DEFAULT_BAUD;
   enum parity_mode parity = PARITY_NONE;
   int rtscts = 1;
+  int nobreak = 0;
   int option;
   int ret;
   int bcmd;
@@ -291,7 +294,7 @@ int main(int argc, FAR char *argv[])
   sigaction(SIGKILL, &sa, NULL);
 
   optind = 0;   /* global that needs to be reset in FLAT mode */
-  while ((option = getopt(argc, argv, "l:s:ehor?")) != ERROR)
+  while ((option = getopt(argc, argv, "l:s:efhor?")) != ERROR)
     {
       switch (option)
         {
@@ -304,16 +307,20 @@ int main(int argc, FAR char *argv[])
             break;
 
           case 'e':
-            parity = PARITY_ODD;
+            parity = PARITY_EVEN;
             break;
 
           case 'o':
-            parity = PARITY_EVEN;
+            parity = PARITY_ODD;
             break;
 
           case 'r':
             rtscts = 0;
             break;
+
+          case 'f':
+              nobreak = 1;
+              break;
 
           case 'h':
           case '?':
@@ -338,8 +345,8 @@ int main(int argc, FAR char *argv[])
   enable_crlf_conversion(g_cu.outfd);
   set_baudrate(g_cu.outfd, baudrate, parity, rtscts);
 
-  /* Open the serial device for reading.  Since we are already connected, this
-   * should not fail.
+  /* Open the serial device for reading.  Since we are already connected,
+   * this should not fail.
    */
 
   g_cu.infd = open(devname, O_RDONLY);
@@ -376,6 +383,12 @@ int main(int argc, FAR char *argv[])
   for (; ; )
     {
       int ch = getc(stdin);
+
+      if (nobreak == 1)
+        {
+          write(g_cu.outfd, &ch, 1);
+          continue;
+        }
 
       if (ch <= 0)
         {

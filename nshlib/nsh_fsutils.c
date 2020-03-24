@@ -189,7 +189,7 @@ int nsh_catfile(FAR struct nsh_vtbl_s *vtbl, FAR const char *cmd,
  *   be a string and is guaranteed to be NUL-termined.  An error occurs if
  *   the file content (+terminator)  will not fit into the provided 'buffer'.
  *
- * Input Paramters:
+ * Input Parameters:
  *   vtbl     - The console vtable
  *   filepath - The full path to the file to be read
  *   buffer   - The user-provided buffer into which the file is read.
@@ -357,7 +357,7 @@ int nsh_foreach_direntry(FAR struct nsh_vtbl_s *vtbl, FAR const char *cmd,
  * Description:
  *   Skip any trailing '/' characters (unless it is also the leading '/')
  *
- * Input Parmeters:
+ * Input Parameters:
  *   dirpath - The directory path to be trimmed.  May be modified!
  *
  * Returned value:
@@ -385,8 +385,8 @@ void nsh_trimdir(FAR char *dirpath)
  * Description:
  *   Trim any leading or trailing spaces from a string.
  *
- * Input Parmeters:
- *   str - The sring to be trimmed.  May be modified!
+ * Input Parameters:
+ *   str - The string to be trimmed.  May be modified!
  *
  * Returned value:
  *   The new string pointer.

@@ -41,8 +41,8 @@ config NSH_PLATFORM_MOTD
 			void platform_motd(FAR char *buffer, size_t buflen);
 
 		Where buffer is the location to return the MOTD and buflen is the
-		length of that buffer.  The maximum size of the buffer is detemined
-		by NSH_FILEIOSIZE.  An appopriate location for the
+		length of that buffer.  The maximum size of the buffer is determined
+		by NSH_FILEIOSIZE.  An appropriate location for the
 		implementation of platform_motd would be within apps/platform/<board>.
 
 		One newline will be inserted after the platform-supplied message.
@@ -175,7 +175,7 @@ config NSH_NESTDEPTH
 	default 3
 	---help---
 		The maximum number of nested if-then[-else]-fi sequences that
-		are permissable.  Default: 3
+		are permissible.  Default: 3
 
 config NSH_DISABLEBG
 	bool "Disable background commands"
@@ -434,7 +434,7 @@ config NSH_DISABLE_NSLOOKUP
 config NSH_DISABLE_PASSWD
 	bool "Disable passwd"
 	default y
-	depends on NSH_LOGIN_PASSWD && FS_WRITABLE && !FSUTILS_PASSWD_READONLY
+	depends on NSH_LOGIN_PASSWD && !FSUTILS_PASSWD_READONLY
 
 config NSH_DISABLE_PMCONFIG
 	bool "Disable pmconfig"
@@ -567,12 +567,12 @@ config NSH_DISABLE_URLENCODE
 config NSH_DISABLE_USERADD
 	bool "Disable useradd"
 	default y
-	depends on NSH_LOGIN_PASSWD && FS_WRITABLE && !FSUTILS_PASSWD_READONLY
+	depends on NSH_LOGIN_PASSWD && !FSUTILS_PASSWD_READONLY
 
 config NSH_DISABLE_USERDEL
 	bool "Disable userdel"
 	default y
-	depends on NSH_LOGIN_PASSWD && FS_WRITABLE && !FSUTILS_PASSWD_READONLY
+	depends on NSH_LOGIN_PASSWD && !FSUTILS_PASSWD_READONLY
 
 config NSH_DISABLE_USLEEP
 	bool "Disable usleep"
@@ -761,7 +761,7 @@ config NSH_ROMFSRC
 	bool "Support ROMFS login script"
 	default n
 	---help---
-		The ROMFS start-up script will be executed excactly once.  For
+		The ROMFS start-up script will be executed exactly once.  For
 		simple, persistence consoles (like a serial console).  But with
 		other other kinds of consoles, there may be multiple, transient
 		sessions (such as Telnet and USB consoles).  In these cases, you
@@ -875,7 +875,7 @@ config NSH_FATNSECTORS
 	---help---
 		When the default rcS file used when NSH_ROMFSETC is selected, it
 		will mount a FAT FS under /tmp. This is the number of sectors to use
-		with the FAT FS.  Defualt is 1024.  The amount of memory used by the
+		with the FAT FS.  Default is 1024.  The amount of memory used by the
 		FAT FS will be NSH_FATSECTSIZE * NSH_FATNSECTORS bytes.
 
 config NSH_FATMOUNTPT
@@ -1175,7 +1175,7 @@ config NSH_IOBUFFER_SIZE
 	default 512
 	---help---
 		Determines the size of the I/O buffer to use for sending/
-		receiving TELNET commands/reponses.  Default: 512
+		receiving TELNET commands/responses.  Default: 512
 
 endif # NSH_TELNET
 endmenu # Telnet Configuration

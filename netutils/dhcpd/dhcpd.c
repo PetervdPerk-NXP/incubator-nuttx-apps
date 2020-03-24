@@ -986,7 +986,7 @@ static int dhcpd_sendpacket(int bbroadcast)
   sockfd = dhcpd_openresponder();
   if (sockfd >= 0)
     {
-      /* Then send the reponse to the DHCP client port at that address */
+      /* Then send the response to the DHCP client port at that address */
 
       memset(&addr, 0, sizeof(struct sockaddr_in));
       addr.sin_family      = AF_INET;
@@ -1129,7 +1129,7 @@ static inline int dhcpd_discover(void)
   in_addr_t ipaddr;
   uint32_t leasetime = CONFIG_NETUTILS_DHCPD_LEASETIME;
 
-  /* Check if the client is aleady in the lease table */
+  /* Check if the client is already in the lease table */
 
   lease = dhcpd_findbymac(g_state.ds_inpacket.chaddr);
   if (lease)

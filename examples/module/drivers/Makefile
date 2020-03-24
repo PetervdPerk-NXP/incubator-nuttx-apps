@@ -76,10 +76,8 @@ build: $(foreach DIR, $(BUILD_SUBDIRS), $(DIR)_build)
 # Install each program in the fsroot directory
 
 install: $(foreach DIR, $(BUILD_SUBDIRS), $(DIR)_install)
-ifneq ($(STRIP),)
-ifneq ($(CONFIG_EXAMPLES_MODULE_NOSTRIP),y)
+ifneq ($(CONFIG_DEBUG_SYMBOLS),y)
 	$(Q) $(STRIP) $(wildcard $(FSIMG_SUBDIR)$(DELIM)*)
-endif
 endif
 
 # Create the fsroot directory
@@ -96,16 +94,12 @@ ifeq ($(CONFIG_EXAMPLES_MODULE_ROMFS),y)
 # Create the romfs.img file from the populated fsroot directory
 
 $(ROMFS_IMG): populate
-ifeq ($(CONFIG_EXAMPLES_MODULE_BUILTINFS),y)
 	$(Q) genromfs -f $@ -d $(FSROOT_DIR) -V "MODULETEST"
-endif
 
 # Create the romfs.h header file from the romfs.img file
 
 $(FSIMG_HDR) : $(ROMFS_IMG)
-ifeq ($(CONFIG_EXAMPLES_MODULE_BUILTINFS),y)
 	$(Q) (cd $(DRIVER_DIR); xxd -i romfs.img | sed -e "s/^unsigned/static const unsigned/g" >$@)
-endif
 
 else ifeq ($(CONFIG_EXAMPLES_MODULE_CROMFS),y)
 # Make sure that the NuttX gencromfs tool has been built
@@ -119,20 +113,13 @@ $(FSIMG_HDR) : populate $(NXTOOLDIR)/$(GENCROMFSEXE)
        $(Q) $(NXTOOLDIR)/$(GENCROMFSEXE) $(FSIMG_DIR) $(FSIMG_HDR)
 
 endif
-
-# Create the exported symbol table
-
-$(SYMTAB_SRC): build
-	$(Q) $(DRIVER_DIR)/mksymtab.sh $(FSROOT_DIR) >$@
-
-else
-
-# Create the exported symbol table
-
-$(SYMTAB_SRC): build populate
-	$(Q) $(DRIVER_DIR)/mksymtab.sh $(FSROOT_DIR) >$@
-
 endif
+
+# Create the exported symbol table
+
+$(SYMTAB_SRC): populate
+	$(Q) $(DRIVER_DIR)/mksymtab.sh $(FSROOT_DIR) >$@.tmp
+	$(Q) $(call TESTANDREPLACEFILE, $@.tmp, $@)
 
 # Copy the symbol table into the kernel pass1/ build directory
 

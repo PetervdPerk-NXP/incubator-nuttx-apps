@@ -94,10 +94,8 @@ build: $(foreach DIR, $(BUILD_SUBDIRS), $(DIR)_build)
 # Install each program in the file system image directory
 
 install: $(foreach DIR, $(BUILD_SUBDIRS), $(DIR)_install)
-ifneq ($(STRIP),)
-ifneq ($(CONFIG_EXAMPLES_ELF_NOSTRIP),y)
+ifneq ($(CONFIG_DEBUG_SYMBOLS),y)
 	$(Q) $(STRIP) $(wildcard $(FSIMG_SUBDIR)/*)
-endif
 endif
 
 # Create the file system image directory
@@ -140,8 +138,9 @@ $(DIRLIST_HDR) : populate
 
 # Create the exported symbol table
 
-$(SYMTAB_SRC): build
-	$(Q) $(TESTS_DIR)/mksymtab.sh $(FSIMG_DIR) >$@
+$(SYMTAB_SRC): populate
+	$(Q) $(TESTS_DIR)/mksymtab.sh $(FSIMG_DIR) >$@.tmp
+	$(Q) $(call TESTANDREPLACEFILE, $@.tmp, $@)
 
 # Clean each subdirectory
 

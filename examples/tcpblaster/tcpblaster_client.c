@@ -70,12 +70,16 @@ void tcpblaster_client(void)
   FAR char *outbuf;
   unsigned long sendtotal;
   unsigned long totallost;
+  int groupcount;
   int sendcount;
   int partials;
   int sockfd;
   int nbytessent;
   int ch;
   int i;
+  char timebuff[100];
+
+  setbuf(stdout, NULL);
 
   /* Allocate buffers */
 
@@ -98,21 +102,23 @@ void tcpblaster_client(void)
   /* Set up the server address */
 
 #ifdef CONFIG_EXAMPLES_TCPBLASTER_IPv6
-  server.sin6_family            = AF_INET6;
-  server.sin6_port              = HTONS(CONFIG_EXAMPLES_TCPBLASTER_SERVER_PORTNO);
-  memcpy(server.sin6_addr.s6_addr16, g_tcpblasterserver_ipv6, 8 * sizeof(uint16_t));
-  addrlen                       = sizeof(struct sockaddr_in6);
+  server.sin6_family     = AF_INET6;
+  server.sin6_port       = HTONS(CONFIG_EXAMPLES_TCPBLASTER_SERVER_PORTNO);
+  memcpy(server.sin6_addr.s6_addr16,
+         g_tcpblasterserver_ipv6, 8 * sizeof(uint16_t));
+  addrlen                = sizeof(struct sockaddr_in6);
 
-  printf("Connecting to IPv6 Address: %04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x\n",
+  printf("Connecting to IPv6 Address: "
+         "%04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x\n",
          g_tcpblasterserver_ipv6[0], g_tcpblasterserver_ipv6[1],
          g_tcpblasterserver_ipv6[2], g_tcpblasterserver_ipv6[3],
          g_tcpblasterserver_ipv6[4], g_tcpblasterserver_ipv6[5],
          g_tcpblasterserver_ipv6[6], g_tcpblasterserver_ipv6[7]);
 #else
-  server.sin_family             = AF_INET;
-  server.sin_port               = HTONS(CONFIG_EXAMPLES_TCPBLASTER_SERVER_PORTNO);
-  server.sin_addr.s_addr        = (in_addr_t)g_tcpblasterserver_ipv4;
-  addrlen                       = sizeof(struct sockaddr_in);
+  server.sin_family      = AF_INET;
+  server.sin_port        = HTONS(CONFIG_EXAMPLES_TCPBLASTER_SERVER_PORTNO);
+  server.sin_addr.s_addr = (in_addr_t)g_tcpblasterserver_ipv4;
+  addrlen                = sizeof(struct sockaddr_in);
 
   printf("Connecting to IPv4 Address: %08lx\n",
          (unsigned long)g_tcpblasterserver_ipv4);
@@ -142,6 +148,7 @@ void tcpblaster_client(void)
 
   /* Then send messages forever */
 
+  groupcount = 0;
   sendcount = 0;
   sendtotal = 0;
   partials  = 0;
@@ -200,7 +207,7 @@ void tcpblaster_client(void)
 
       sendtotal += nbytessent;
 
-      if (++sendcount >= 50)
+      if (++sendcount >= GROUPSIZE)
         {
           struct timespec elapsed;
           struct timespec curr;
@@ -221,12 +228,15 @@ void tcpblaster_client(void)
               elapsed.tv_nsec = curr.tv_nsec + borrow;
             }
 
-          fkbrecvd  = (float)sendtotal / 1024.0;
-          felapsed = (float)elapsed.tv_sec + (float)elapsed.tv_nsec / 1000000000.0;
-          printf("Sent %d buffers:  %7.1f Kb (avg %5.1f Kb) in "
-                 "%6.2f Sec (%7.1f Kb/Sec)\n",
-                  sendcount, fkbrecvd, fkbrecvd / sendcount, felapsed,
-                  fkbrecvd / felapsed);
+          strftime(timebuff, 100,
+                   "%Y-%m-%d %H:%M:%S.000", localtime(&curr.tv_sec));
+
+          fkbrecvd = sendtotal / 1024.0f;
+          felapsed = elapsed.tv_sec + elapsed.tv_nsec / 1000000000.0f;
+          printf("[%s] %d: Sent %d %d-byte buffers: %7.1fKB "
+                 "(avg %5.1f KB) in %6.2f seconds (%7.1f KB/second)\n",
+                 timebuff, groupcount, sendcount, SENDSIZE, fkbrecvd,
+                 fkbrecvd / sendcount, felapsed, fkbrecvd / felapsed);
 
           if (partials > 0)
             {
@@ -241,6 +251,7 @@ void tcpblaster_client(void)
           sendtotal  = 0;
           partials   = 0;
           totallost  = 0;
+          groupcount++;
 
           clock_gettime(CLOCK_REALTIME, &start);
         }

@@ -1146,7 +1146,7 @@ static char *expand_filename(char *path, char **restP, bool tildemapped)
     }
 #endif /* 0 */
 
-  /* Handle leading / or . and relative pathes by copying the default directory into checked */
+  /* Handle leading / or . and relative paths by copying the default directory into checked */
 
   if ((path[0] == '/' && strncmp(path, httpd_root, strlen(httpd_root)) != 0) || path[0] != '/')
     {
@@ -1165,7 +1165,7 @@ static char *expand_filename(char *path, char **restP, bool tildemapped)
           path++;
         }
 
-      /* Add '/' to separate relative pathes */
+      /* Add '/' to separate relative paths */
 
       else if (path[0] != '/')
         {
@@ -2962,9 +2962,9 @@ int httpd_parse_request(httpd_conn *hc)
           return -1;
         }
 
-      /* If the client wants to do keep-alives, it might also be doing
+      /* If the client wants to do keep-alive, it might also be doing
        * pipelining.  There's no way for us to tell.  Since we don't
-       * implement keep-alives yet, if we close such a connection there
+       * implement keep-alive yet, if we close such a connection there
        * might be unread pipelined requests waiting.  So, we have to do a
        * lingering close.
        */

@@ -200,7 +200,7 @@
 #endif
 
 /* We need a valid IP domain (any domain) to create a socket that we can use
- * to comunicate with the network device.
+ * to communicate with the network device.
  */
 
 #if defined(CONFIG_NET_IPv4)
@@ -760,7 +760,8 @@ static int netinit_monitor(void)
   /* TODO: Stop the PHY notifications and remove the signal handler. */
 
 errout_with_notification:
-#  warning Missing logic
+  ifr.ifr_mii_notify_event.sigev_notify = SIGEV_NONE;
+  ioctl(sd, SIOCMIINOTIFY, (unsigned long)&ifr);
 errout_with_sigaction:
   sigaction(CONFIG_NETINIT_SIGNO, &oact, NULL);
 errout_with_socket:
