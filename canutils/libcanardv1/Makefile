@@ -1,9 +1,8 @@
 ############################################################################
-# apps/canutils/libcanard/Make.defs
-# Adds selected applications to apps/ build
+# apps/canutils/libcanard/Makefile
 #
 #   Copyright (C) 2016 Omni Hoverboards Inc. All rights reserved.
-#   Author: Paul Alexander Patience <paul-a.patience@polymtl.ca>
+#   Authors: Paul Alexander Patience <paul-a.patience@polymtl.ca>
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -34,6 +33,53 @@
 #
 ############################################################################
 
-ifeq ($(CONFIG_CANUTILS_LIBCANARD),y)
-CONFIGURED_APPS += $(APPDIR)/canutils/libcanard
-endif
+-include $(TOPDIR)/Make.defs
+
+WGET = wget
+UNPACK = unzip
+PACKEXT = .zip
+
+LIBCANARDV1_URL = $(patsubst "%",%,$(strip $(CONFIG_LIBCANARDV1_URL)))
+LIBCANARDV1_VERSION = $(patsubst "%",%,$(strip $(CONFIG_LIBCANARDV1_VERSION)))
+LIBCANARDV1_UNPACKNAME = libcanard-$(LIBCANARDV1_VERSION)
+LIBCANARDV1_PACKNAME = $(LIBCANARDV1_UNPACKNAME)$(PACKEXT)
+LIBCANARDV1_SRCDIR = $(LIBCANARDV1_UNPACKNAME)/libcanard
+
+APPS_INCDIR = $(APPDIR)$(DELIM)include$(DELIM)canutils
+
+CFLAGS += -std=c11 -I$(APPS_INCDIR) -DCANARD_ASSERT=DEBUGASSERT -DCANARD_DSDL_CONFIG_LITTLE_ENDIAN=1
+
+CSRCS = $(LIBCANARDV1_SRCDIR)$(DELIM)canard.c $(LIBCANARDV1_SRCDIR)$(DELIM)canard_dsdl.c
+
+$(LIBCANARDV1_PACKNAME):
+	@echo "Downloading: $@"
+	$(Q) $(WGET) -O $@ $(LIBCANARDV1_URL)$(DELIM)$(LIBCANARDV1_VERSION)$(PACKEXT)
+
+$(LIBCANARDV1_UNPACKNAME): $(LIBCANARDV1_PACKNAME)
+	@echo "Unpacking: $< -> $@"
+	$(call DELDIR, $@)
+	$(Q) $(UNPACK) $<
+	$(Q) touch $@
+
+$(LIBCANARDV1_SRCDIR)$(DELIM)canard.h: $(LIBCANARDV1_UNPACKNAME)
+
+$(LIBCANARDV1_SRCDIR)$(DELIM)canard_dsdl.h: $(LIBCANARDV1_UNPACKNAME)
+
+$(APPS_INCDIR)$(DELIM)canard.h: $(LIBCANARDV1_SRCDIR)$(DELIM)canard.h
+	$(Q) cp $< $@
+
+$(APPS_INCDIR)$(DELIM)canard_dsdl.h: $(LIBCANARDV1_SRCDIR)$(DELIM)canard_dsdl.h
+	$(Q) cp $< $@
+
+context:: $(APPS_INCDIR)$(DELIM)canard.h $(APPS_INCDIR)$(DELIM)canard_dsdl.h
+
+clean::
+	$(foreach OBJ, $(OBJS), $(call DELFILE, $(OBJ)))
+
+distclean::
+	$(call DELFILE, $(APPS_INCDIR)$(DELIM)canard.h)
+	$(call DELFILE, $(APPS_INCDIR)$(DELIM)canard_dsdl.h)
+	$(call DELDIR, $(LIBCANARDV1_UNPACKNAME))
+	$(call DELFILE, $(LIBCANARDV1_PACKNAME))
+
+include $(APPDIR)/Application.mk

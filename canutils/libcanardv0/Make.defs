@@ -1,8 +1,8 @@
 ############################################################################
-# apps/examples/canard/Make.defs
+# apps/canutils/libcanard/Make.defs
 # Adds selected applications to apps/ build
 #
-#   Copyright (C) 2015 Omni Hoverboards Inc. All rights reserved.
+#   Copyright (C) 2016 Omni Hoverboards Inc. All rights reserved.
 #   Author: Paul Alexander Patience <paul-a.patience@polymtl.ca>
 #
 # Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,6 @@
 #
 ############################################################################
 
-ifneq ($(CONFIG_EXAMPLES_LIBCANARD),)
-CONFIGURED_APPS += $(APPDIR)/examples/canard
+ifeq ($(CONFIG_CANUTILS_LIBCANARDV0),y)
+CONFIGURED_APPS += $(APPDIR)/canutils/libcanardv0
 endif

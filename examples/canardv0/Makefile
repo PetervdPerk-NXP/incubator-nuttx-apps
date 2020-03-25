@@ -1,8 +1,8 @@
 ############################################################################
-# apps/canutils/libcanard/Makefile
+# apps/examples/canard/Makefile
 #
-#   Copyright (C) 2016 Omni Hoverboards Inc. All rights reserved.
-#   Authors: Paul Alexander Patience <paul-a.patience@polymtl.ca>
+#   Copyright (C) 2015 Omni Hoverboards Inc. All rights reserved.
+#   Author: Paul Alexander Patience <paul-a.patience@polymtl.ca>
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -35,52 +35,12 @@
 
 -include $(TOPDIR)/Make.defs
 
-WGET = wget
-UNPACK = unzip
-PACKEXT = .zip
+PROGNAME = canardv0
+PRIORITY = SCHED_PRIORITY_DEFAULT
+STACKSIZE = $(CONFIG_EXAMPLES_LIBCANARDV0_STACKSIZE)
+MODULE = $(CONFIG_EXAMPLES_LIBCANARDV0)
 
-LIBCANARD_URL = $(patsubst "%",%,$(strip $(CONFIG_LIBCANARD_URL)))
-LIBCANARD_VERSION = $(patsubst "%",%,$(strip $(CONFIG_LIBCANARD_VERSION)))
-LIBCANARD_UNPACKNAME = libcanard-$(LIBCANARD_VERSION)
-LIBCANARD_PACKNAME = $(LIBCANARD_UNPACKNAME)$(PACKEXT)
-LIBCANARD_SRCDIR = $(LIBCANARD_UNPACKNAME)
-LIBCANARD_DRVDIR = $(LIBCANARD_SRCDIR)$(DELIM)drivers$(DELIM)nuttx
-
-APPS_INCDIR = $(APPDIR)$(DELIM)include$(DELIM)canutils
-
-CFLAGS += -std=c99 -I$(APPS_INCDIR) -DCANARD_ASSERT=DEBUGASSERT
-
-CSRCS = $(LIBCANARD_SRCDIR)$(DELIM)canard.c $(LIBCANARD_DRVDIR)$(DELIM)canard_nuttx.c
-
-$(LIBCANARD_PACKNAME):
-	@echo "Downloading: $@"
-	$(Q) $(WGET) -O $@ $(LIBCANARD_URL)$(DELIM)$(LIBCANARD_VERSION)$(PACKEXT)
-
-$(LIBCANARD_UNPACKNAME): $(LIBCANARD_PACKNAME)
-	@echo "Unpacking: $< -> $@"
-	$(call DELDIR, $@)
-	$(Q) $(UNPACK) $<
-	$(Q) touch $@
-
-$(LIBCANARD_SRCDIR)$(DELIM)canard.h: $(LIBCANARD_UNPACKNAME)
-
-$(LIBCANARD_DRVDIR)$(DELIM)canard_nuttx.h: $(LIBCANARD_UNPACKNAME)
-
-$(APPS_INCDIR)$(DELIM)canard.h: $(LIBCANARD_SRCDIR)$(DELIM)canard.h
-	$(Q) cp $< $@
-
-$(APPS_INCDIR)$(DELIM)canard_nuttx.h: $(LIBCANARD_DRVDIR)$(DELIM)canard_nuttx.h
-	$(Q) cp $< $@
-
-context:: $(APPS_INCDIR)$(DELIM)canard.h $(APPS_INCDIR)$(DELIM)canard_nuttx.h
-
-clean::
-	$(foreach OBJ, $(OBJS), $(call DELFILE, $(OBJ)))
-
-distclean::
-	$(call DELFILE, $(APPS_INCDIR)$(DELIM)canard.h)
-	$(call DELFILE, $(APPS_INCDIR)$(DELIM)canard_nuttx.h)
-	$(call DELDIR, $(LIBCANARD_UNPACKNAME))
-	$(call DELFILE, $(LIBCANARD_PACKNAME))
+CFLAGS += -I$(APPDIR)/include/canutils
+MAINSRC = canard_main.c
 
 include $(APPDIR)/Application.mk

@@ -3,24 +3,24 @@
 # see the file kconfig-language.txt in the NuttX tools repository.
 #
 
-config CANUTILS_LIBCANARD
-	bool "libcanard UAVCAN Library"
+config CANUTILS_LIBCANARDV1
+	bool "libcanard UAVCAN v1 Library"
 	default n
-	depends on CAN && CAN_EXTID
+	depends on NET_CAN
 	---help---
-		Enable the libcanard UAVCAN library.
+		Enable the libcanard UAVCAN v1 library.
 
-if CANUTILS_LIBCANARD
+if CANUTILS_LIBCANARDV1
 
-config LIBCANARD_URL
+config LIBCANARDV1_URL
 	string "libcanard URL"
 	default "https://github.com/UAVCAN/libcanard/archive"
 	---help---
 		libcanard URL.
 
-config LIBCANARD_VERSION
+config LIBCANARDV1_VERSION
 	string "libcanard Version"
-	default "5ad65c6a4efda60cda7a8f0512da0f465822bbb8"
+	default "e776368355a890543035cdae356710ade5d7baea"
 	---help---
 		libcanard version.
 
