@@ -61,6 +61,10 @@
 
 #include "o1heap.h"
 
+#include <fcntl.h>
+#include <nuttx/input/buttons.h>
+#include <nuttx/leds/userled.h>
+
 /****************************************************************************
  * Pre-processor Definitions
  ****************************************************************************/
@@ -85,6 +89,10 @@
 
 #define UNIQUE_ID_LENGTH_BYTES                   16
 
+#ifndef CONFIG_EXAMPLES_BUTTONS_SIGNO
+#  define CONFIG_EXAMPLES_BUTTONS_SIGNO 13
+#endif
+
 /****************************************************************************
  * Private Data
  ****************************************************************************/
@@ -107,6 +115,7 @@ static uint8_t node_mode = UAVCAN_NODE_MODE_INITIALIZATION;
 static bool g_canard_daemon_started;
 
 static uint8_t my_message_transfer_id;  // Must be static or heap-allocated to retain state between calls.
+static uint8_t toggle_transfer_id;
 
 struct pollfd fd;
 int s; /* can raw socket */ 
@@ -119,9 +128,15 @@ char ctrlmsg[sizeof(struct cmsghdr) + sizeof(struct timeval)];
 
 #define O1_HEAP_SIZE 4096
 
+CanardInstance ins;
+
 O1HeapInstance* my_allocator;
 static uint8_t uavcan_heap[O1_HEAP_SIZE]
                            __attribute__((aligned(O1HEAP_ALIGNMENT)));
+                           
+                           
+int ld; /* led descriptor */
+int led; /* led state */
 
 /****************************************************************************
  * Public Functions
@@ -178,6 +193,33 @@ uint64_t getMonotonicTimestampUSec(void)
  *   This function is called at 1 Hz rate from the main loop.
  *
  ****************************************************************************/
+
+void sendToggleLedMsg()
+{
+    
+  CanardMicrosecond transmission_deadline = getMonotonicTimestampUSec() + 1000 * 10;
+
+  const CanardTransfer transfer = {
+      .timestamp_usec = transmission_deadline,      // Zero if transmission deadline is not limited.
+      .priority       = CanardPriorityNominal,
+      .transfer_kind  = CanardTransferKindMessage,
+      .port_id        = 1235,                       // This is the subject-ID.
+      .remote_node_id = CANARD_NODE_ID_UNSET,       // Messages cannot be unicast, so use UNSET.
+      .transfer_id    = toggle_transfer_id,
+      .payload_size   = 47,
+      .payload        = "\x2D\x00" "Toggle",
+  };
+
+  ++toggle_transfer_id;  // The transfer-ID shall be incremented after every transmission on this subject.
+  int32_t result = canardTxPush(&ins, &transfer);
+  if (result < 0)
+  {
+      // An error has occurred: either an argument is invalid or we've ran out of memory.
+      // It is possible to statically prove that an out-of-memory will never occur for a given application if the
+      // heap is sized correctly; for background, refer to the Robson's Proof and the documentation for O1Heap.
+      fprintf(stderr, "Transmit error %d\n", result);
+  }
+}
 
 void process1HzTasks(CanardInstance * ins, uint64_t timestamp_usec)
 {
@@ -257,6 +299,11 @@ static void processReceivedTransfer(CanardTransfer* receive)
   printf("Received transfer remote_node_id %d transfer_id: %d payload size: %d\n",
          receive->remote_node_id, receive->transfer_id, receive->payload_size);
 
+  if (strcmp(receive->payload+2,"Toggle") == 0)
+    {
+      led = !led;
+      ioctl(ld, ULEDIOC_SETALL, (led ? 0x01 : 0x07));
+    }
 }
 
 /****************************************************************************
@@ -306,7 +353,7 @@ void processTxRxOnce(CanardInstance * ins, int timeout_msec)
 
   received_frame.extended_can_id = recv_frame.can_id & CAN_EFF_MASK;
   received_frame.payload_size = recv_frame.len;
-  memcpy(received_frame.payload, recv_frame.data, recv_frame.len);
+  received_frame.payload = &recv_frame.data;
 
   struct cmsghdr* cmsg = CMSG_FIRSTHDR(&recv_msg);
   if (cmsg->cmsg_level == SOL_SOCKET && cmsg->cmsg_type == SO_TIMESTAMP)
@@ -343,6 +390,100 @@ void processTxRxOnce(CanardInstance * ins, int timeout_msec)
   }
   
   
+}
+
+void button_handler(int signum, siginfo_t *siginfo, void *context)
+{
+   if(siginfo->si_value.sival_int == 2)
+   {
+     printf("Button Caught signal %d val %d\n",signum, siginfo->si_value.sival_int);
+     
+     /* TODO toggle led */
+     sendToggleLedMsg();
+   }
+}
+
+
+static void init_button()
+{
+  struct btn_notify_s btnevents;
+  
+  btn_buttonset_t supported;
+  btn_buttonset_t sample = 0;
+  
+  int ret;
+  int bd;
+    
+  bd = open("/dev/buttons", O_RDONLY|O_NONBLOCK);
+    
+  if (bd < 0)
+  {
+    int errcode = errno;
+    printf("button_daemon: ERROR: Failed to open %s: %d\n",
+           "/dev/buttons", errcode);
+    return;
+  }
+
+  /* Get the set of BUTTONs supported */
+
+  ret = ioctl(bd, BTNIOC_SUPPORTED,
+              (unsigned long)((uintptr_t)&supported));
+  if (ret < 0)
+    {
+      int errcode = errno;
+      printf("button_daemon: ERROR: ioctl(BTNIOC_SUPPORTED) failed: %d\n",
+             errcode);
+      return;
+    }
+
+  printf("button_daemon: Supported BUTTONs 0x%02x\n", (unsigned int)supported);
+
+  /* Define the notifications events */
+
+  btnevents.bn_press   = supported;
+  btnevents.bn_release = supported;
+
+  btnevents.bn_event.sigev_notify = SIGEV_SIGNAL;
+  btnevents.bn_event.sigev_signo  = CONFIG_EXAMPLES_BUTTONS_SIGNO;
+
+  /* Register to receive a signal when buttons are pressed/released */
+
+  ret = ioctl(bd, BTNIOC_REGISTER,
+              (unsigned long)((uintptr_t)&btnevents));
+  if (ret < 0)
+    {
+      int errcode = errno;
+      printf("button_daemon: ERROR: ioctl(BTNIOC_SUPPORTED) failed: %d\n",
+             errcode);
+      return;
+    }
+    
+   signal(CONFIG_EXAMPLES_BUTTONS_SIGNO, button_handler);
+}
+
+static void init_led()
+{
+  printf("led: Opening %s\n", "/dev/userleds");
+  ld = open("/dev/userleds", O_WRONLY);
+  if (ld < 0)
+    {
+      int errcode = errno;
+      printf("led_daemon: ERROR: Failed to open %s: %d\n",
+             "/dev/userleds", errcode);
+      return;
+    }
+    
+  //0x1 is blue
+    
+  int ret = ioctl(ld, ULEDIOC_SETALL, 0x07);
+  if (ret < 0)
+    {
+        int errcode = errno;
+        printf("led_daemon: ERROR: ioctl(ULEDIOC_SUPPORTED) failed: %d\n",
+                errcode);
+    }
+
+  led = 0;
 }
 
 
@@ -435,13 +576,19 @@ static int canard_daemon(int argc, char *argv[])
       return;
     }
 
-  CanardInstance ins = canardInit(&memAllocate, &memFree);
+  ins = canardInit(&memAllocate, &memFree);
   ins.mtu_bytes = CANARD_MTU_CAN_FD;  // Defaults to 64 (CAN FD);
   ins.node_id   = 2;
   
   /* Open the CAN device for reading */
   s = create_can_socket();
-
+  
+  /* Init button */
+  init_button();
+  
+  /* Init led */
+  init_led();
+  
   if (s < 0)
     {
       printf("canard_daemon: ERROR: open %s failed: %d\n",
@@ -470,6 +617,15 @@ static int canard_daemon(int argc, char *argv[])
                            1024,                        // The maximum payload size (max DSDL object size).
                            CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC,
                            &my_subscription);
+  
+  CanardRxSubscription led_subscription;
+  (void) canardRxSubscribe(&ins,
+                           CanardTransferKindMessage,  // Indicate that we want service responses.
+                           1235,                         // The Service-ID to subscribe to.
+                           1024,                        // The maximum payload size (max DSDL object size).
+                           CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC,
+                           &led_subscription);
+  
 
 
   g_canard_daemon_started = true;
@@ -484,7 +640,7 @@ static int canard_daemon(int argc, char *argv[])
       if (ts >= next_1hz_service_at)
         {
           next_1hz_service_at += 1000000;
-          process1HzTasks(&ins, ts);
+          //process1HzTasks(&ins, ts);
         }
     }
 
