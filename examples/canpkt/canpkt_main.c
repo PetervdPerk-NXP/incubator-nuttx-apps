@@ -41,6 +41,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
+#include <sys/time.h>
 #include <unistd.h>
 #include <netpacket/can.h>
 #include <nuttx/can.h>
@@ -49,6 +50,20 @@
 /****************************************************************************
  * Private Functions
  ****************************************************************************/
+
+
+uint64_t getMonotonicTimestampUSec(void)
+{
+  struct timespec ts;
+
+  memset(&ts, 0, sizeof(ts));
+  if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0)
+    {
+      abort();
+    }
+
+  return ts.tv_sec * 1000000ULL + ts.tv_nsec / 1000ULL;
+}
 
 /****************************************************************************
  * Name: psock_create
@@ -211,8 +226,11 @@ int main(int argc, FAR char *argv[])
       frame.len = 8;
       memcpy(frame.data, data, 12);
 
+      uint64_t duration;
+
       for (i = 0; i < do_txtimes; i++)
         {
+          duration = getMonotonicTimestampUSec() + 1000;
           #define PIN_PORTD               (3 << 8)
           #define PIN31                   (31 << 0)
           s32k1xx_gpiowrite(PIN_PORTD | PIN31, 1);
@@ -231,8 +249,12 @@ int main(int argc, FAR char *argv[])
                   print_buf(frame.data, txc);
                 }
             }
-          usleep(1000);
+
+
+          //usleep(1000-ts);
         }
+
+	while(getMonotonicTimestampUSec() < duration);
 
       free(buf);
     }

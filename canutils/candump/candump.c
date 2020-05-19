@@ -427,6 +427,31 @@ int main(int argc, char **argv)
 			addr.can_ifindex = ifr.ifr_ifindex;
 		} else
 			addr.can_ifindex = 0; /* any can interface */
+			
+        /*ret = ioctl(s[i], SIOCGCANBITRATE, (unsigned long)&ifr);
+        if (!ret) {
+            FAR struct can_ioctl_data_s *bitrate;
+
+            bitrate = (FAR struct can_ioctl_data_s*)&ifr.ifr_ifru.ifru_can_data;
+            printf("bitrate %d Sample point %d\n", bitrate->arbi_bitrate * 1000, bitrate->arbi_samplep);
+            if(bitrate->data_bitrate > 0)
+                printf("dbitrate %d Sample point %d\n", bitrate->data_bitrate * 1000, bitrate->data_samplep);
+        } else {
+            printf("bitrate ret %d\n", ret);
+        }*/
+        
+        /*ifr.ifr_ifru.ifru_can_data.data_bitrate = 8000000 / 1000;
+        ret = ioctl(s[i], SIOCSCANBITRATE, (unsigned long)&ifr);
+        if (!ret) {
+            FAR struct can_ioctl_data_s *bitrate;
+
+            bitrate = (FAR struct can_ioctl_data_s*)&ifr.ifr_ifru.ifru_can_data;
+            printf("bitrate %d Sample point %d\n", bitrate->arbi_bitrate * 1000, bitrate->arbi_samplep);
+            if(bitrate->data_bitrate > 0)
+                printf("dbitrate %d Sample point %d\n", bitrate->data_bitrate * 1000, bitrate->data_samplep);
+        } else {
+            printf("set bitrate ret %d\n", ret);
+        }*/
 
 		if (nptr) {
 
@@ -653,7 +678,7 @@ int main(int argc, char **argv)
 					return 1;
 				}
 
-				if ((size_t)nbytes == CAN_MTU)
+				if (1 || (size_t)nbytes == CAN_MTU)
 					maxdlen = CAN_MAX_DLEN;
 				else if ((size_t)nbytes == CANFD_MTU)
 					maxdlen = CANFD_MAX_DLEN;
