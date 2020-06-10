@@ -35,5 +35,5 @@
 ############################################################################
 
 ifneq ($(CONFIG_EXAMPLES_LIBUAVCAN_EXAMPLE),)
-CONFIGURED_APPS += $(APPDIR)/examples/uavcan
+CONFIGURED_APPS += $(APPDIR)/examples/libuavcanv0
 endif

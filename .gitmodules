@@ -1,3 +1,8 @@
 [submodule "examples/uavcan/libuavcan"]
-	path = examples/uavcan/libuavcan
-	url = https://github.com/PetervdPerk-NXP/libuavcan
+	path = examples/libuavcanv0/libuavcan
+	url = https://github.com/uavcan/libuavcan
+	branch = legacy-v0
+[submodule "examples/libuavcanv0/platform_specific_components"]
+	path = examples/libuavcanv0/platform_specific_components
+	url = https://github.com/PetervdPerk-NXP/platform_specific_components
+	branch = legacy-v0

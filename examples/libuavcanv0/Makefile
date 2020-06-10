@@ -37,23 +37,22 @@
 
 # Network packet socket example
 
-PROGNAME = libuavcan_example
+PROGNAME = libuavcanv0_example
 PRIORITY = SCHED_PRIORITY_DEFAULT
 STACKSIZE = 20480
-MODULE = $(CONFIG_EXAMPLES_LIBUAVCAN_EXAMPLE)
+MODULE = $(CONFIG_EXAMPLES_LIBUAVCANV0_EXAMPLE)
 
 CXXEXT = .cpp
 
 CXXFLAGS += -DUAVCAN_CPP_VERSION=UAVCAN_CPP03 -DUAVCAN_NO_ASSERTIONS -DUAVCAN_PLATFORM=generic -std=c++11
 
-CXXFLAGS += ${shell $(INCDIR) $(INCDIROPT) "$(CC)" "$(APPDIR)/examples/uavcan/libuavcan/dsdlc_generated"}
+CXXFLAGS += ${shell $(INCDIR) $(INCDIROPT) "$(CC)" "$(APPDIR)/examples/libuavcanv0/libuavcan/dsdlc_generated"}
 
-CXXFLAGS += ${shell $(INCDIR) $(INCDIROPT) "$(CC)" "$(APPDIR)/examples/uavcan/libuavcan/libuavcan/include"}
+CXXFLAGS += ${shell $(INCDIR) $(INCDIROPT) "$(CC)" "$(APPDIR)/examples/libuavcanv0/libuavcan/libuavcan/include"}
 
-CXXFLAGS += ${shell $(INCDIR) $(INCDIROPT) "$(CC)" "$(APPDIR)/examples/uavcan/libuavcan/libuavcan_drivers/nuttx/include"}
+CXXFLAGS += ${shell $(INCDIR) $(INCDIROPT) "$(CC)" "$(APPDIR)/examples/libuavcanv0/platform_specific_components/nuttx/libuavcan/include"}
 
 MAINSRC   = uavcan_main.cpp
-#CXXSRCS  += libuavcan/libuavcan/tools/coverity_scan_model.cpp
 CXXSRCS  += libuavcan/libuavcan/src/node/uc_scheduler.cpp
 CXXSRCS  += libuavcan/libuavcan/src/node/uc_service_client.cpp
 CXXSRCS  += libuavcan/libuavcan/src/node/uc_timer.cpp
